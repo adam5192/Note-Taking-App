@@ -1,0 +1,29 @@
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+  --brand-color: #8b90ff;
+  --base-color: #f2f4f8;
+  --surface-color: #fff;
+  --text-color: #191b23;
+  --secondary-text-color: #3c404f;
+  --base-transparent-90: rgba(247, 247, 247, 0.9);
+  --base-transparent-100: rgba(247, 247, 247, 1);
+}
+
+.dark-theme {
+  --brand-color: #8b90ff;
+  --base-color: #1e1f26;
+  --surface-color: #2c2f38;
+  --text-color: #f0f0f0;
+  --secondary-text-color: #b0b3c0;
+  --base-transparent-90: rgba(30, 31, 38, 0.9);
+  --base-transparent-100: rgba(30, 31, 38, 1);
+}
+
+body {
+    font-family: Roboto, sans-serif;
+}
