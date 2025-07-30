@@ -1,29 +1,432 @@
-*{
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-:root {
-  --brand-color: #8b90ff;
-  --base-color: #f2f4f8;
-  --surface-color: #fff;
-  --text-color: #191b23;
-  --secondary-text-color: #3c404f;
-  --base-transparent-90: rgba(247, 247, 247, 0.9);
-  --base-transparent-100: rgba(247, 247, 247, 1);
-}
-
-.dark-theme {
-  --brand-color: #8b90ff;
-  --base-color: #1e1f26;
-  --surface-color: #2c2f38;
-  --text-color: #f0f0f0;
-  --secondary-text-color: #b0b3c0;
-  --base-transparent-90: rgba(30, 31, 38, 0.9);
-  --base-transparent-100: rgba(30, 31, 38, 1);
+/* -------------------- Base Reset -------------------- */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Nunito', sans-serif;
 }
 
 body {
-    font-family: Roboto, sans-serif;
+  background: var(--base-color);
+}
+
+button, input, textarea {
+  font: inherit;
+}
+
+button {
+  font-weight: 700;
+  cursor: pointer;
+}
+
+h1 {
+  font-weight: 1000;
+  color: var(--text-color);
+}
+
+
+/* -------------------- Color Variables -------------------- */
+:root {
+  --brand-color: #10b981;
+  --base-color: #f0f0f0;
+  --bar-color: hsl(0, 0%, 94%);
+  --surface-color: hsl(0, 0%, 100%);
+  --text-color: #1f2937;
+  --secondary-text-color: #4b5563;
+  --hover-color: #059669;
+  --base-transparent-90: rgba(255, 255, 255, 0.9);
+  --base-transparent-100: rgba(255, 255, 255, 1);
+}
+
+.dark-theme {
+  --brand-color: #34d399;
+  --base-color: hsl(216, 12%, 8%);
+  --bar-color: hsl(215, 28%, 12%);
+  --surface-color: hsl(215, 28%, 17%);
+  --text-color: #e5e7eb;
+  --secondary-text-color: #9ca3af;
+  --hover-color: #10b981;
+  --base-transparent-90: rgba(18, 20, 23, 0.9);
+  --base-transparent-100: rgba(18, 20, 23, 1);
+}
+
+
+/* -------------------- Layout -------------------- */
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 1.5rem;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+.notes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 1.5rem;
+  padding: 0rem 1rem;
+}
+
+.note-grid {
+  display: grid;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: end;
+  gap: 0.5rem;
+}
+
+
+/* -------------------- Buttons -------------------- */
+.add-note-btn, .theme-toggle-btn {
+  padding: 1rem;
+  background: var(--brand-color);
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-size: 1.1rem;
+}
+
+.theme-toggle-btn {
+  margin-left: 1rem;
+  background: var(--surface-color);
+}
+
+.theme-toggle-btn:hover {
+  background: var(--brand-color);
+}
+
+.add-note-btn:hover,
+.theme-toggle-btn:hover,
+.cancel-btn:hover,
+.save-btn:hover {
+  background: var(--hover-color)
+}
+
+.dialog-actions button {
+  padding: 0.7rem;
+  border: none;
+  border-radius: 8px;
+}
+
+.cancel-btn {
+  background: var(--base-color);
+  color: var(--text-color);
+}
+
+.save-btn {
+  color: white;
+  background: var(--brand-color);
+}
+
+.close-btn {
+  border: none;
+  background: var(--surface-color);
+  cursor: pointer;
+  color: var(--text-color);
+  font-weight: 600;
+  font-size: 1.6rem;
+}
+
+
+/* -------------------- Dialog -------------------- */
+#noteDialog {
+  margin: auto;
+  max-width: 500px;
+  width: 90vw;
+  border: none;
+  border-radius: 20px;
+  color: var(--text-color);
+  background: var(--surface-color);
+}
+
+#noteDialog::backdrop {
+  background: rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(4px);
+}
+
+.dialog-content {
+  padding: 2rem;
+  margin: 0;
+}
+
+.dialog-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.dialog-title {
+  font-size: 1.6rem;
+  font-weight: 600;
+}
+
+
+/* -------------------- Forms -------------------- */
+.form-group {
+  margin-bottom: 1.5rem;
+  display: grid;
+}
+
+.form-label {
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  font-size: 1.1rem;
+}
+
+.form-input,
+.form-textarea {
+  border: none;
+  border-radius: 8px;
+  background: var(--base-color);
+  margin-left: 0.1rem;
+  border: 2px solid var(--surface-color);
+}
+
+.form-input:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: var(--brand-color);
+}
+
+.form-input {
+  padding: 1rem 0.5rem;
+  color: var(--text-color);
+}
+
+.form-textarea {
+  padding: 1rem 0.5rem;
+  height: 20rem;
+  color: var(--text-color);
+}
+
+.form-textarea::-webkit-scrollbar {
+  width: 6px;
+}
+
+.form-textarea::-webkit-scrollbar-thumb {
+  background: var(--secondary-text-color);
+  border-radius: 4px;
+}
+
+
+/* -------------------- Notes -------------------- */
+.note-card {
+  background: var(--surface-color);
+  border-radius: 10px;
+  position: relative;
+  color: var(--text-color);
+  border: 1px solid var(--surface-color);
+  overflow: hidden;
+}
+
+.note-card:hover {
+  transform: scale(1.02);
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+}
+
+.note-card:hover .note-actions {
+  opacity: 1;
+  visibility: visible;
+}
+
+.note-card-text {
+  padding: 0rem 2rem;
+  margin-bottom: 3rem;
+}
+
+.note-title {
+  margin-bottom: 0.7rem;
+  word-wrap: break-word;
+}
+
+.note-content {
+  color: var(--secondary-text-color);
+  word-wrap: break-word;
+  white-space: pre-wrap;
+}
+
+.note-actions {
+  padding: 0.4rem 0.6rem;
+  margin-bottom: 0.2rem;
+  background: var(--bar-color);
+  border-radius: 10px;
+  visibility: hidden;
+  display: flex;
+  justify-content: space-between;
+}
+
+.note-actions button {
+  border: none;
+  background: transparent;
+  color: var(--text-color);
+}
+
+.note-actions:hover {
+  cursor: grab;
+}
+
+.edit-btn:hover,
+.delete-btn:hover {
+  transform: scale(1.1);
+}
+
+.drag-bar {
+  width: 40%;
+  height: 6px;
+  background: var(--secondary-text-color);
+  border-radius: 4px;
+  margin-bottom: 6px;
+  cursor: grab;
+  align-self: center;
+}
+
+.note-scroll {
+  overflow-y: auto;
+  max-height: 300px;
+  position: relative;
+  padding-right: 8px;
+}
+
+.note-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.note-scroll::-webkit-scrollbar-thumb {
+  background: var(--secondary-text-color);
+  border-radius: 4px;
+}
+
+
+/* -------------------- Sortable -------------------- */
+.sortable-chosen {
+  transform: rotate(2deg) scale(1.03);
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+  opacity: 0.95;
+}
+
+.sortable-ghost {
+  opacity: 0.2;
+}
+
+
+/* -------------------- Tags -------------------- */
+.tag-input-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.tag-input-wrapper {
+  position: relative;
+}
+
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.3rem;
+}
+
+.tag-pill {
+  background: var(--brand-color);
+  color: white;
+  padding: 0.3rem 0.6rem;
+  border-radius: 1rem;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.tag-pill .remove-tag {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+
+/* -------------------- Tag Suggestions -------------------- */
+.tag-suggestions {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  background: var(--bar-color);
+  border-radius: 6px;
+  z-index: 100;
+  max-height: 150px;
+  overflow-y: auto;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.tag-suggestions li {
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+}
+
+.tag-suggestions li:hover {
+  background-color: var(--hover-color);
+  color: white;
+}
+
+
+/* -------------------- Tag Filters -------------------- */
+.tag-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1rem 1rem 0.5rem;
+}
+
+.filter-pill {
+  background-color: var(--surface-color);
+  color: var(--text-color);
+  border-radius: 999px;
+  padding: 0.4rem 0.8rem;
+  margin: 0.2rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.filter-pill.active {
+  background: var(--brand-color);
+  color: var(--text-color);
+  border-color: var(--brand-color);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+}
+
+.filter-pill:hover {
+  background: var(--hover-color);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+
+
+/* -------------------- Empty State -------------------- */
+.empty-state {
+  margin-left: 3%;
+  display: inline-block;
+  border-radius: 9px;
+  padding: 3rem 2rem;
+  text-align: center;
+  color: var(--secondary-text-color);
+}
+
+.empty-state h2 {
+  font-size: 1.6rem;
+  margin-bottom: 0.8rem;
+}
+
+.empty-state p {
+  font-size: 1rem;
+  margin-bottom: 1.4rem;
 }

@@ -6,20 +6,32 @@
     <title>Notes</title>
     <link rel="stylesheet" href="style.css">
     <script src="app.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
     <header>
-        <h1>Quick Notes</h1>
+        <h1>Notes</h1>
         <div>
             <button class="add-note-btn" onclick="openNoteDialog()">+ Add Note</button>
-            <button id="themeToggleBtn" class ="themeToggleBtn">🌙</button>
+            <button id="themeToggleBtn" class ="theme-toggle-btn">🌙</button>
         </div>
     </header>
+
+    <div id="tagFilters" class="tag-filters">
+        <!-- "All" tag will always show -->
+        <div class="tag-pill filter-pill active" data-tag="All" onclick="filterByTag('All')">All</div>
+    </div>
+
 
     <main id="notesContainer" class = "notes-grid"> 
 
@@ -32,19 +44,31 @@
                 <button class ="close-btn" onclick="closeNoteDialog()">x</button>
             </div>
 
+            <div class="form-group tag-input-wrapper">
+                <label for="noteTagsInput" class="form-label">Tags</label>
+                
+                <!-- Pills will be injected here -->
+                <div id="tagList" class="tag-list"></div>
+
+                <!-- Input to type the tag -->
+                <input type="text" id="noteTagsInput" class="form-input" placeholder="Type a tag and press Enter" autocomplete="off">
+                <ul id="tagSuggestions" class="tag-suggestions"></ul>
+
+            </div>
+
             <form id="noteForm">
                 <div class ="form-group">
                     <label for="noteTitle" class="form-label">Title</label>
                     <input type="text" id="noteTitle" class="form-input" placeholder="Enter note title..." required>
                 </div>
 
-                <div class ="form-group">
+                <div class="form-group">
                     <label for="noteContent" class="form-label">Content</label>
-                    <textarea id="noteContent" class="form-textarea" placeholder="Write your note here..." required>
+                    <textarea id="noteContent" class="form-textarea" placeholder="Write your note here..."required></textarea>
                 </div>
 
                 <div class="dialog-actions">
-                    <button type="button" class="cancel=btn" onclick="closeNoteDialog()">Cancel</button>
+                    <button type="button" class="cancel-btn" onclick="closeNoteDialog()">Cancel</button>
                     <button type="submit" class="save-btn">Save</button>
                 </div>
             </form>
