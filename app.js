@@ -4,7 +4,7 @@ let tagList = null;
 let currentTags = [];
 let allTags = new Set(); // Store all unique tags
 let currentFilter = 'All';
-
+import { auth, provider, signInWithPopup, signOut, onAuthStateChanged } from './firebase.js';
 
 
 function loadNotes() {
@@ -260,9 +260,20 @@ document.addEventListener('DOMContentLoaded', function() {
     renderNotes()
     renderTagFilters();
     const noteDialog = document.getElementById('noteDialog');
-
     const tagInput = document.getElementById('noteTagsInput');
     tagList = document.getElementById('tagList');
+
+    // Button event listeners
+    document.getElementById('addNoteBtn').addEventListener('click', () => openNoteDialog());
+    document.getElementById('cancelBtn').addEventListener('click', () => closeNoteDialog());
+    document.getElementById('dialogCloseBtn').addEventListener('click', () => closeNoteDialog());
+
+    document.getElementById('tagFilters').addEventListener('click', (e) => {
+        if (e.target.classList.contains('filter-pill')) {
+        const tag = e.target.dataset.tag;
+        filterByTag(tag);
+        }
+    });
 
     // Ensure that dialog closes when clicked outside of box, but only if the click started and ended there
     let clickStartInsideDialog = false;
@@ -346,3 +357,43 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         })
     })
+
+const loginBtn = document.getElementById('loginBtn');
+const logoutBtn = document.getElementById('logoutBtn');
+const userInfo = document.getElementById('userInfo');
+const userPhoto = document.getElementById('userPhoto');
+
+loginBtn.addEventListener('click', () => {
+  signInWithPopup(auth, provider)
+    .then(result => {
+      const user = result.user;
+      console.log("Logged in as:", user.displayName);
+    })
+    .catch(error => {
+      console.error("Login failed:", error);
+    });
+});
+
+logoutBtn.addEventListener('click', () => {
+  signOut(auth);
+});
+
+onAuthStateChanged(auth, user => {
+  if (user) {
+    // User is logged in
+    loginBtn.style.display = 'none';
+    userInfo.style.display = 'flex';
+    userPhoto.src = user.photoURL;
+  } else {
+    // Not logged in
+    loginBtn.style.display = 'inline-block';
+    userInfo.style.display = 'none';
+    userPhoto.src = '';
+  }
+});
+
+window.openNoteDialog = openNoteDialog;
+window.closeNoteDialog = closeNoteDialog;
+window.filterByTag = filterByTag;
+window.deleteNote = deleteNote;
+window.saveNote = saveNote;
