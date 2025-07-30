@@ -1,0 +1,13 @@
+# Node
+node_modules
+*.log
+
+# Firebase
+note-taker-backend/serviceAccountKey.json
+
+# Env vars
+.env
+
+# Editor/OS
+.DS_Store
+.vscode/

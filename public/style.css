@@ -142,7 +142,7 @@ header {
 
 /* -------------------- Buttons -------------------- */
 .add-note-btn, .theme-toggle-btn {
-  padding: 1rem;
+  padding: 0.8rem;
   background: var(--brand-color);
   border: none;
   border-radius: 12px;

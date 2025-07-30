@@ -7,9 +7,27 @@ let currentFilter = 'All';
 import { auth, provider, signInWithPopup, signOut, onAuthStateChanged } from './firebase.js';
 
 
-function loadNotes() {
-    const savedNotes = localStorage.getItem('quickNotes')
-    return savedNotes ? JSON.parse(savedNotes) : [];
+async function loadNotes() {
+    const user = auth.currentUser;
+    if (!user) return [];
+
+    try {
+        const idToken = await user.getIdToken();
+
+        const res = await fetch('http://localhost:3000/notes', {
+            headers: {
+                Authorization: `Bearer ${idToken}`
+            }
+        });
+
+        if (!res.ok) throw new Error('Failed to fetch');
+
+        const data = await res.json();
+        return data?.notes || JSON.parse(localStorage.getItem(`notes_${user.uid}`)) || [];
+    } catch (err) {
+        console.error("Failed to load notes from backend", err);
+        return [];
+    }
 }
 
 function saveNote(event){
@@ -86,8 +104,23 @@ function applyStoredTheme() {
   }
 }
 
-function saveNotes() {
-    localStorage.setItem('quickNotes', JSON.stringify(notes));
+async function saveNotes() {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    try {
+        const idToken = await user.getIdToken();
+        await fetch('http://localhost:3000/notes', {
+            method: 'POST',
+            headers: {
+                'Content-Type' : 'application/json',
+                Authorization: `Bearer ${idToken}`
+            },
+            body: JSON.stringify({notes})
+        });
+    } catch (err) {
+        console.error("Failed to save notes to backend", err);
+    }
 }
 
 function filterByTag(tag) {
@@ -251,12 +284,15 @@ function selectTag(tag) {
 }
 
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
     applyStoredTheme()
-    notes = loadNotes()
-    notes.forEach(note => {
-    (note.tags || []).forEach(tag => allTags.add(tag));
-});
+    
+    const user = auth.currentUser;
+  if (user) {
+    notes = await loadNotes();
+    allTags = new Set();
+    notes.forEach(note => (note.tags || []).forEach(tag => allTags.add(tag)));
+  }
     renderNotes()
     renderTagFilters();
     const noteDialog = document.getElementById('noteDialog');
@@ -378,14 +414,29 @@ logoutBtn.addEventListener('click', () => {
   signOut(auth);
 });
 
-onAuthStateChanged(auth, user => {
+onAuthStateChanged(auth, async user => {
   if (user) {
     // User is logged in
+    notes = await loadNotes();
+
+    allTags = new Set();
+    notes.forEach(note => {
+      (note.tags || []).forEach(tag => allTags.add(tag));
+    });
+
+    renderNotes();
+    renderTagFilters();
+
     loginBtn.style.display = 'none';
     userInfo.style.display = 'flex';
     userPhoto.src = user.photoURL;
   } else {
     // Not logged in
+    notes = [];
+    allTags = new Set();
+    renderNotes();
+    renderTagFilters();
+
     loginBtn.style.display = 'inline-block';
     userInfo.style.display = 'none';
     userPhoto.src = '';
