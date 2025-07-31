@@ -5,6 +5,9 @@ node_modules
 # Firebase
 note-taker-backend/serviceAccountKey.json
 
+# Server
+note-taker-backend/server.js
+
 # Env vars
 .env
 
