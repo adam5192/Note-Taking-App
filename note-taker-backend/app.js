@@ -4,6 +4,11 @@ let tagList = null;
 let currentTags = [];
 let allTags = new Set(); // Store all unique tags
 let currentFilter = 'All';import { auth, provider, signInWithPopup, signOut, onAuthStateChanged } from '../front-end/firebase.js';
+const BACKEND_URL =
+  window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost'
+    ? 'http://localhost:3000'
+    : 'https://notely-p3dy.onrender.com';
+
 
 async function loadNotes() {
     const user = auth.currentUser;
@@ -12,7 +17,7 @@ async function loadNotes() {
     try {
         const idToken = await user.getIdToken();
 
-        const res = await fetch('https://notely-p3dy.onrender.com', {
+        const res = await fetch(`${BACKEND_URL}/notes`, {
             headers: {
                 Authorization: `Bearer ${idToken}`
             }
@@ -108,7 +113,7 @@ async function saveNotes() {
 
     try {
         const idToken = await user.getIdToken();
-        await fetch('https://notely-p3dy.onrender.com', {
+        await fetch(`${BACKEND_URL}/notes`, {
             method: 'POST',
             headers: {
                 'Content-Type' : 'application/json',
