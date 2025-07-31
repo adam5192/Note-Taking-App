@@ -5,7 +5,6 @@ let currentTags = [];
 let allTags = new Set(); // Store all unique tags
 let currentFilter = 'All';import { auth, provider, signInWithPopup, signOut, onAuthStateChanged } from './firebase.js';
 
-
 async function loadNotes() {
     const user = auth.currentUser;
     if (!user) return [];

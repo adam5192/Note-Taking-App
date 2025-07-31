@@ -1,10 +1,11 @@
 require('dotenv').config();
+
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const admin = require('firebase-admin');
 const mongoose = require('mongoose');
-const serviceAccount = require('./serviceAccountKey.json');
+
 
 const MONGO_URI = process.env.MONGO_URI;
 
@@ -25,12 +26,11 @@ const noteSchema = new mongoose.Schema({
 });
 
 const Note = mongoose.model('Note', noteSchema);
-
-
-
+const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount)
 });
+
 
 const app = express();
 const PORT = 3000;
