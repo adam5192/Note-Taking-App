@@ -1,10 +1,11 @@
-require('dotenv').config();
-
 const express = require('express');
-const cors = require('cors');
-const bodyParser = require('body-parser');
 const admin = require('firebase-admin');
 const mongoose = require('mongoose');
+const cors = require('cors');
+const dotenv = require('dotenv');
+const bodyParser = require('body-parser');
+
+dotenv.config();
 
 
 const MONGO_URI = process.env.MONGO_URI;
