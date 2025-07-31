@@ -17,7 +17,7 @@ async function loadNotes() {
     try {
         const idToken = await user.getIdToken();
 
-        const res = await fetch(`${BACKEND_URL}/notes`, {
+        const res = await fetch(`https://notely-p3dy.onrender.com/notes`, {
             headers: {
                 Authorization: `Bearer ${idToken}`
             }
@@ -113,7 +113,7 @@ async function saveNotes() {
 
     try {
         const idToken = await user.getIdToken();
-        await fetch(`${BACKEND_URL}/notes`, {
+        await fetch(`https://notely-p3dy.onrender.com/notes`, {
             method: 'POST',
             headers: {
                 'Content-Type' : 'application/json',
