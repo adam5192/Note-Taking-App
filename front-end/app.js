@@ -3,7 +3,7 @@ let editingNoteId = null;
 let tagList = null;
 let currentTags = [];
 let allTags = new Set(); // Store all unique tags
-let currentFilter = 'All';import { auth, provider, signInWithPopup, signOut, onAuthStateChanged } from '../front-end/firebase.js';
+let currentFilter = 'All';import { auth, provider, signInWithPopup, signOut, onAuthStateChanged } from './firebase.js';
 const BACKEND_URL =
   window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost'
     ? 'http://localhost:3000'
