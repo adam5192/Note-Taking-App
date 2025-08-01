@@ -11,27 +11,33 @@ const BACKEND_URL =
 
 
 async function loadNotes() {
-    const user = auth.currentUser;
-    if (!user) return [];
+  const user = auth.currentUser;
+  if (!user) return [];
 
-    try {
-        const idToken = await user.getIdToken();
+  try {
+    const idToken = await user.getIdToken();
 
-        const res = await fetch(`https://notely-p3dy.onrender.com/notes`, {
-            headers: {
-                Authorization: `Bearer ${idToken}`
-            }
-        });
+    const res = await fetch(`${BACKEND_URL}/notes`, {
+      headers: {
+        Authorization: `Bearer ${idToken}`
+      }
+    });
 
-        if (!res.ok) throw new Error('Failed to fetch');
+    if (!res.ok) throw new Error('Failed to fetch');
 
-        const data = await res.json();
-        return data?.notes || JSON.parse(localStorage.getItem(`notes_${user.uid}`)) || [];
-    } catch (err) {
-        console.error("Failed to load notes from backend", err);
-        return [];
-    }
+    const data = await res.json();
+
+    // normalize _id to id
+    return (data.notes || []).map(note => ({
+      ...note,
+      id: note._id  // unify the ID field
+    }));
+  } catch (err) {
+    console.error("Failed to load notes from backend", err);
+    return [];
+  }
 }
+
 
 function saveNote(event){
     event.preventDefault();
@@ -60,8 +66,11 @@ function saveNote(event){
             tags: tags
         })
     }
-
     tags.forEach(tag => allTags.add(tag));
+
+    // Rebuild allTags from current notes
+    allTags = new Set();
+    notes.forEach(note => (note.tags || []).forEach(tag => allTags.add(tag)));
 
     closeNoteDialog();
     saveNotes();
@@ -89,6 +98,10 @@ function generateId() {
 
 function deleteNote(noteId) {
     notes = notes.filter(note => note.id != noteId);
+
+    // Rebuild allTags from current notes
+    allTags = new Set();
+    notes.forEach(note => (note.tags || []).forEach(tag => allTags.add(tag)));
     saveNotes();
     renderNotes();
     renderTagFilters();
@@ -133,6 +146,7 @@ function filterByTag(tag) {
     });
 
     renderNotes(tag);
+    renderTagFilters();
 }
 
 
@@ -211,33 +225,35 @@ function openNoteDialog(noteId = null) {
     const titleInput = document.getElementById('noteTitle');
     const contentInput = document.getElementById('noteContent');
     const tagInput = document.getElementById('noteTagsInput');
-    
-    if(noteId) {
-        // Edit Mode
-        const noteToEdit = notes.find(note => note.id === noteId);
-        editingNoteId = noteId;
-        document.getElementById('dialogTitle').textContent = 'Edit Note';
-        titleInput.value = noteToEdit.title;
-        contentInput.value = noteToEdit.content;
 
+    if (noteId) {
+        const noteToEdit = notes.find(note => note.id === noteId || note._id === noteId);
+        
+        if (!noteToEdit) {
+            console.warn(`Note with ID "${noteId}" not found.`);
+            return;
+        }
+
+        editingNoteId = noteToEdit.id || noteToEdit._id;
+        document.getElementById('dialogTitle').textContent = 'Edit Note';
+        titleInput.value = noteToEdit.title || '';
+        contentInput.value = noteToEdit.content || '';
         currentTags = [...(noteToEdit.tags || [])];
-    }
-    else {
-        // Add Mode
+    } else {
         editingNoteId = null;
         document.getElementById('dialogTitle').textContent = 'Add New Note';
         titleInput.value = '';
         contentInput.value = '';
-
         currentTags = [];
     }
 
     tagInput.value = '';
     renderTags();
-    
+
     dialog.showModal();
     titleInput.focus();
 }
+
 
 function closeNoteDialog() {
     document.getElementById('noteDialog').close();
@@ -256,8 +272,7 @@ function renderTags() {
 function renderTagFilters() {
     const tagFilterContainer = document.getElementById('tagFilters');
     
-    const uniqueTags = Array.from(allTags);
-
+    const uniqueTags = Array.from(allTags).sort((a, b) => a.localeCompare(b)); // 🔹 sort alphabetically
     const tagsHTML = ['All', ...uniqueTags].map(tag => `
         <div 
             class="tag-pill filter-pill ${currentFilter === tag ? 'active' : ''}" 
@@ -284,6 +299,17 @@ function selectTag(tag) {
     }
     document.getElementById('noteTagsInput').value = '';
     document.getElementById('tagSuggestions').innerHTML = '';
+}
+
+function extractTag(tagInput) {
+    const newTag = tagInput.value.trim();
+
+    if (!currentTags.includes(newTag)) {
+        currentTags.push(newTag);
+        renderTags();
+    }
+    tagInput.value = '';
+    console.log("tag extract");
 }
 
 
@@ -318,7 +344,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     let clickStartInsideDialog = false;
 
     document.getElementById('noteForm').addEventListener('submit', saveNote);
-
     document.getElementById('themeToggleBtn').addEventListener('click', toggleTheme);
     
     noteDialog.addEventListener('mousedown', (e) => {
@@ -335,15 +360,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     tagInput.addEventListener('keydown', function (e) {
         if (e.key === 'Enter' && tagInput.value.trim() !== '') {
-            e.preventDefault();
-            const newTag = tagInput.value.trim();
-
-            if (!currentTags.includes(newTag)) {
-            currentTags.push(newTag);
-            renderTags();
-            }
-
-            tagInput.value = '';
+            extractTag(tagInput);
         }
     });
 
@@ -451,3 +468,5 @@ window.closeNoteDialog = closeNoteDialog;
 window.filterByTag = filterByTag;
 window.deleteNote = deleteNote;
 window.saveNote = saveNote;
+window.selectTag = selectTag;
+window.removeTag = removeTag;
