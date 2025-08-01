@@ -19,6 +19,9 @@ Notely is a clean and responsive web app for taking and organizing notes with ta
 **Backend:** Node.js, Express, MongoDB (with Mongoose)  
 **Hosting:** GitHub Pages (frontend), Render (backend)
 
+<img width="1067" height="1311" alt="image" src="https://github.com/user-attachments/assets/801eabb7-e969-42c9-872c-c2775caa923c" />
+
+
 ## Running Locally
 
 1. Clone the repo
