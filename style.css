@@ -17,6 +17,7 @@ button, input, textarea {
 button {
   font-weight: 700;
   cursor: pointer;
+  white-space: nowrap;              /* NEW: prevents squish/wrap on small screens */
 }
 
 h1 {
@@ -107,7 +108,13 @@ header {
     display: flex;
     align-items: center;
     gap: 0.6rem;
+
+    /* NEW: avoid ugly wraps—let the row scroll horizontally */
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
+  .header-right::-webkit-scrollbar { display: none; }  /* NEW */
 
   h1 {
     margin: 0;
@@ -124,9 +131,16 @@ header {
 
 .notes-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); /* CHANGED: 400px -> 260px so phones fit 1 column */
   gap: 1.8rem;
   padding: 0.0rem 1rem;
+}
+
+/* NEW: at medium screens, give cards a bit more min width */
+@media (min-width: 768px) {
+  .notes-grid {
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  }
 }
 
 .note-grid {
@@ -148,8 +162,8 @@ header {
   border-radius: 12px;
   color: white;
   font-size: 1.2rem;
+  min-height: 40px;                 /* NEW: consistent height so Logout doesn’t collapse */
 }
-
 
 .theme-toggle-btn {
   margin-left: 1rem;
@@ -201,6 +215,7 @@ header {
   color: white;
   font-weight: 550;
   justify-content: end;
+  min-height: 40px;                 /* NEW: same anti-squish */
 }
 
 
@@ -224,6 +239,11 @@ header {
 .dialog-content {
   padding: 2.4rem;
   margin: 0;
+}
+
+/* NEW: tighter padding on very small screens so it fits comfortably */
+@media (max-width: 480px) {
+  .dialog-content { padding: 1.4rem; }
 }
 
 .dialog-header {
@@ -304,6 +324,12 @@ header {
 .note-card:hover .note-actions {
   opacity: 1;
   visibility: visible;
+}
+
+/* NEW: on touch devices (no hover), keep actions visible */
+@media (hover: none) {
+  .note-actions { visibility: visible; opacity: 1; }
+  .drag-bar { display: none; }
 }
 
 .note-card-text {
@@ -462,6 +488,17 @@ header {
   margin: 1.2rem 1rem 0.5rem;
 }
 
+/* on phones, make filters a single horizontal row that scrolls */
+@media (max-width: 600px) {
+  .tag-filters {
+    margin: 0.8rem 0.6rem;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .tag-filters::-webkit-scrollbar { display: none; }
+}
+
 .filter-pill {
   background-color: var(--surface-color);
   color: var(--text-color);
@@ -472,6 +509,7 @@ header {
   font-size: 1.02rem;
   transition: background-color 0.2s, color 0.2s, border-color 0.2s;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  white-space: nowrap;             
 }
 
 .filter-pill.active {
@@ -486,6 +524,79 @@ header {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
 }
 
+/* ===== Hamburger menu polish ===== */
+.menu { position: relative; display: none; }
+.menu-toggle{
+  background: var(--surface-color);
+  color: var(--text-color);
+  border:none; border-radius:12px;
+  padding:.6rem .8rem; font-weight:700; line-height:1;
+  min-height:40px; cursor:pointer;
+}
+
+/* Panel */
+.menu-panel{
+  position: absolute;       
+  right: 0; top: calc(100% + 8px);
+  background: var(--surface-color);
+  color: var(--text-color);
+  border: 1px solid rgba(0,0,0,.08);
+  border-radius: 12px;
+  box-shadow: 0 12px 28px rgba(0,0,0,.18);
+  padding: .35rem;
+  min-width: 75px;
+  display: none;
+  z-index: 9999;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity .12s ease, transform .12s ease;
+}
+.menu-panel.open{ display:block; opacity:1; transform: translateY(0); }
+
+.menu-item {
+  width: 100%;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+
+  background: transparent;
+  border: none;
+  color: var(--text-color);
+
+  padding: .5rem .75rem;
+  font-size: 0.9rem;
+  line-height: 1.3;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+
+  margin-bottom: .35rem;   
+}
+
+.menu-item:last-child {
+  margin-bottom: 0;        
+}
+
+.menu-item:hover{ background: var(--bar-color); }
+
+/* Phones: show hamburger, hide standalone theme/logout; avoid clipping */
+@media (max-width: 600px){
+  #themeToggleBtn, #logoutBtn { display:none; }
+  .header-right .menu { display:block; }
+
+  .header-right{ flex-wrap:nowrap; overflow-x:auto; overflow-y:visible; }
+  .header-right::-webkit-scrollbar{ display:none; }
+
+  /* Use fixed so panel never gets cut off */
+  .menu-panel{ position: fixed; right: 1rem; top: 64px; }
+}
+
+/* Desktop: keep hamburger hidden /
+@media (min-width: 601px){ .header-right .menu { display:none; } }
+
+
+
 
 /* -------------------- Empty State -------------------- */
 .empty-state {
@@ -495,6 +606,15 @@ header {
   padding: 3.6rem 2rem;
   text-align: center;
   color: var(--secondary-text-color);
+}
+
+/* NEW: center and scale better on phones */
+@media (max-width: 600px) {
+  .empty-state {
+    margin-left: 0;
+    display: block;
+    padding: 2rem 1rem;
+  }
 }
 
 .empty-state h2 {

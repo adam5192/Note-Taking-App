@@ -126,7 +126,7 @@ async function saveNotes() {
 
     try {
         const idToken = await user.getIdToken();
-        await fetch(`https://notely-p3dy.onrender.com/notes`, {
+        await fetch(`${BACKEND_URL}/notes`, {
             method: 'POST',
             headers: {
                 'Content-Type' : 'application/json',
@@ -189,34 +189,6 @@ function renderNotes() {
             </div>
         </div>
     `).join('');
-
-    // Drag handlers
-    let draggedNoteId = null;
-
-    document.querySelectorAll('.note-card').forEach(card => {
-        card.addEventListener('dragstart', e => {
-            draggedNoteId = card.dataset.id;
-            e.dataTransfer.effectAllowed = 'move';
-            card.style.opacity = '0.5';
-        });
-
-        card.addEventListener('dragend', () => {
-            draggedNoteId = null;
-            card.style.opacity = '1';
-        });
-
-        card.addEventListener('dragover', e => {
-            e.preventDefault();
-        });
-
-        card.addEventListener('drop', e => {
-            e.preventDefault();
-            const targetId = card.dataset.id;
-            if (draggedNoteId && draggedNoteId !== targetId) {
-                reorderNotes(draggedNoteId, targetId);
-            }
-        });
-    });
 }
 
 
@@ -313,156 +285,193 @@ function extractTag(tagInput) {
 }
 
 
-document.addEventListener('DOMContentLoaded', async function() {
-    applyStoredTheme()
-    
-    const user = auth.currentUser;
+document.addEventListener('DOMContentLoaded', async function () {
+  applyStoredTheme();
+
+  // --- cache DOM once
+  const noteDialog = document.getElementById('noteDialog');
+  const tagInput   = document.getElementById('noteTagsInput');
+  const tagSuggestions = document.getElementById('tagSuggestions');
+  const notesContainer = document.getElementById('notesContainer');
+  const addNoteBtn = document.getElementById('addNoteBtn');
+  const cancelBtn  = document.getElementById('cancelBtn');
+  const dialogCloseBtn = document.getElementById('dialogCloseBtn');
+  const tagFiltersEl = document.getElementById('tagFilters');
+  const themeToggleBtn = document.getElementById('themeToggleBtn');
+
+  const loginBtn  = document.getElementById('loginBtn');
+  const logoutBtn = document.getElementById('logoutBtn');
+  const userInfo  = document.getElementById('userInfo');
+  const userPhoto = document.getElementById('userPhoto');
+
+  // --- hamburger elements (may not exist on desktop)
+  const menuBtn        = document.querySelector('.menu-toggle');
+  const panel          = document.getElementById('headerMenu');
+  const menuThemeBtn   = document.getElementById('menuTheme');
+  const menuLogoutBtn  = document.getElementById('menuLogout');
+
+  // --- load notes if already logged in
+  const user = auth.currentUser;
   if (user) {
     notes = await loadNotes();
     allTags = new Set();
-    notes.forEach(note => (note.tags || []).forEach(tag => allTags.add(tag)));
+    notes.forEach(n => (n.tags || []).forEach(t => allTags.add(t)));
   }
-    renderNotes()
-    renderTagFilters();
-    const noteDialog = document.getElementById('noteDialog');
-    const tagInput = document.getElementById('noteTagsInput');
-    tagList = document.getElementById('tagList');
 
-    // Button event listeners
-    document.getElementById('addNoteBtn').addEventListener('click', () => openNoteDialog());
-    document.getElementById('cancelBtn').addEventListener('click', () => closeNoteDialog());
-    document.getElementById('dialogCloseBtn').addEventListener('click', () => closeNoteDialog());
+  renderNotes();
+  renderTagFilters();
+  tagList = document.getElementById('tagList');
 
-    document.getElementById('tagFilters').addEventListener('click', (e) => {
-        if (e.target.classList.contains('filter-pill')) {
-        const tag = e.target.dataset.tag;
-        filterByTag(tag);
-        }
+  // ------------------ Buttons / Form ------------------
+  if (addNoteBtn) addNoteBtn.addEventListener('click', () => openNoteDialog());
+  if (cancelBtn) cancelBtn.addEventListener('click', closeNoteDialog);
+  if (dialogCloseBtn) dialogCloseBtn.addEventListener('click', closeNoteDialog);
+
+  if (tagFiltersEl) {
+    tagFiltersEl.addEventListener('click', (e) => {
+      if (e.target.classList.contains('filter-pill')) {
+        filterByTag(e.target.dataset.tag);
+      }
     });
+  }
 
-    // Ensure that dialog closes when clicked outside of box, but only if the click started and ended there
-    let clickStartInsideDialog = false;
-
-    document.getElementById('noteForm').addEventListener('submit', saveNote);
-    document.getElementById('themeToggleBtn').addEventListener('click', toggleTheme);
-    
+  // close dialog when clicking backdrop (only if click started outside content)
+  let clickStartInsideDialog = false;
+  if (noteDialog) {
     noteDialog.addEventListener('mousedown', (e) => {
-        // If click started inside dialog
-        clickStartInsideDialog = e.target.closest('.dialog-content') !== null;
+      clickStartInsideDialog = e.target.closest('.dialog-content') !== null;
     });
-
-    noteDialog.addEventListener('click', e => {
-        // Only close if click did not start inside
-        if (!clickStartInsideDialog && e.target === noteDialog) {
-            closeNoteDialog();
-        }
+    noteDialog.addEventListener('click', (e) => {
+      if (!clickStartInsideDialog && e.target === noteDialog) closeNoteDialog();
     });
-
-    tagInput.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter' && tagInput.value.trim() !== '') {
-            extractTag(tagInput);
-        }
-    });
-
-    const tagSuggestions = document.getElementById('tagSuggestions');
-
-    // Show suggestions while typing
-    tagInput.addEventListener('input', () => {
-        const input = tagInput.value.trim().toLowerCase();
-
-        if (!input) {
-            tagSuggestions.innerHTML = '';
-            return;
-        }
-
-        const matches = [...allTags].filter(tag =>
-            tag.toLowerCase().includes(input) && !currentTags.includes(tag)
-        );
-
-        if (matches.length === 0) {
-            tagSuggestions.innerHTML = '';
-            return;
-        }
-
-        tagSuggestions.innerHTML = matches.map(tag =>
-            `<li onclick="selectTag('${tag}')">${tag}</li>`
-        ).join('');
-    });
-
-    // Hide suggestions on blur (with slight delay to allow click)
-    tagInput.addEventListener('blur', () => {
-        setTimeout(() => tagSuggestions.innerHTML = '', 150);
-    });
-
-
-
-        new Sortable(document.getElementById('notesContainer'), {
-            animation: 150,
-            handle: ".note-actions", 
-            ghostClass: "sortable-ghost", 
-            onEnd: function (evt) {
-                const oldIndex = evt.oldIndex;
-                const newIndex = evt.newIndex;
-
-                if (oldIndex === newIndex) return;
-
-                const [movedNote] = notes.splice(oldIndex, 1);
-                notes.splice(newIndex, 0, movedNote);
-
-                saveNotes();
-            }
-        })
-    })
-
-const loginBtn = document.getElementById('loginBtn');
-const logoutBtn = document.getElementById('logoutBtn');
-const userInfo = document.getElementById('userInfo');
-const userPhoto = document.getElementById('userPhoto');
-
-loginBtn.addEventListener('click', () => {
-  signInWithPopup(auth, provider)
-    .then(result => {
-      const user = result.user;
-      console.log("Logged in as:", user.displayName);
-    })
-    .catch(error => {
-      console.error("Login failed:", error);
-    });
-});
-
-logoutBtn.addEventListener('click', () => {
-  signOut(auth);
-});
-
-onAuthStateChanged(auth, async user => {
-  if (user) {
-    // User is logged in
-    notes = await loadNotes();
-
-    allTags = new Set();
-    notes.forEach(note => {
-      (note.tags || []).forEach(tag => allTags.add(tag));
-    });
-
-    renderNotes();
-    renderTagFilters();
-
-    loginBtn.style.display = 'none';
-    userInfo.style.display = 'flex';
-    userPhoto.src = user.photoURL;
-  } else {
-    // Not logged in
-    notes = [];
-    allTags = new Set();
-    renderNotes();
-    renderTagFilters();
-
-    loginBtn.style.display = 'inline-block';
-    userInfo.style.display = 'none';
-    userPhoto.src = '';
   }
+
+  const noteForm = document.getElementById('noteForm');
+  if (noteForm) noteForm.addEventListener('submit', saveNote);
+
+  if (themeToggleBtn) themeToggleBtn.addEventListener('click', toggleTheme);
+
+  if (tagInput) {
+    tagInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && tagInput.value.trim() !== '') extractTag(tagInput);
+    });
+
+    tagInput.addEventListener('input', () => {
+      const input = tagInput.value.trim().toLowerCase();
+      if (!input) { tagSuggestions.innerHTML = ''; return; }
+      const matches = [...allTags].filter(tag => tag.toLowerCase().includes(input) && !currentTags.includes(tag));
+      tagSuggestions.innerHTML = matches.length
+        ? matches.map(tag => `<li onclick="selectTag('${tag}')">${tag}</li>`).join('')
+        : '';
+    });
+
+    tagInput.addEventListener('blur', () => {
+      setTimeout(() => tagSuggestions.innerHTML = '', 150);
+    });
+  }
+
+  // ------------------ Sortable ------------------
+  new Sortable(notesContainer, {
+    animation: 150,
+    handle: ".note-actions",
+    ghostClass: "sortable-ghost",
+    onEnd: function (evt) {
+      const { oldIndex, newIndex } = evt;
+      if (oldIndex === newIndex) return;
+      const [movedNote] = notes.splice(oldIndex, 1);
+      notes.splice(newIndex, 0, movedNote);
+      saveNotes();
+    }
+  });
+
+  // ------------------ Auth buttons ------------------
+  if (loginBtn) {
+    loginBtn.addEventListener('click', () => {
+      signInWithPopup(auth, provider)
+        .then(result => console.log("Logged in as:", result.user.displayName))
+        .catch(err => console.error("Login failed:", err));
+    });
+  }
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => { signOut(auth); });
+  }
+
+  // ------------------ Hamburger menu ------------------
+  const syncThemeLabel = () => {
+    if (!menuThemeBtn) return;
+    const dark = document.body.classList.contains('dark-theme') || localStorage.getItem('theme') === 'dark';
+    menuThemeBtn.textContent = dark ? '☀️ Light mode' : '🌙 Dark mode';
+    menuThemeBtn.setAttribute('aria-checked', dark ? 'true' : 'false');
+  };
+  syncThemeLabel(); // keep label consistent with stored theme
+
+  if (menuBtn && panel) {
+    const openMenu  = () => { panel.classList.add('open'); menuBtn.setAttribute('aria-expanded','true'); };
+    const closeMenu = () => { panel.classList.remove('open'); menuBtn.setAttribute('aria-expanded','false'); };
+
+    // Optional: position panel under the icon on resize
+    const positionPanel = () => {
+      const r = menuBtn.getBoundingClientRect();
+      panel.style.right = `${Math.max(16, window.innerWidth - r.right)}px`;
+      panel.style.top = `${r.bottom + 8}px`;
+    };
+
+    menuBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const willOpen = !panel.classList.contains('open');
+      willOpen ? openMenu() : closeMenu();
+      if (willOpen) positionPanel();
+    });
+    document.addEventListener('click', (e) => {
+      if (!panel.contains(e.target) && !menuBtn.contains(e.target)) closeMenu();
+    });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeMenu(); });
+    window.addEventListener('resize', () => { if (panel.classList.contains('open')) positionPanel(); });
+
+    if (menuThemeBtn) {
+      menuThemeBtn.addEventListener('click', () => {
+        toggleTheme();
+        syncThemeLabel();
+        closeMenu();
+      });
+    }
+    if (menuLogoutBtn) {
+      // hidden by default; toggled in onAuthStateChanged
+      menuLogoutBtn.style.display = 'none';
+      menuLogoutBtn.addEventListener('click', () => { signOut(auth); closeMenu(); });
+    }
+  }
+
+  // ------------------ Auth state UI sync ------------------
+  onAuthStateChanged(auth, async user => {
+    if (user) {
+      notes = await loadNotes();
+      allTags = new Set();
+      notes.forEach(n => (n.tags || []).forEach(t => allTags.add(t)));
+      renderNotes();
+      renderTagFilters();
+
+      if (loginBtn)  loginBtn.style.display = 'none';
+      if (userInfo)  userInfo.style.display = 'flex';
+      if (userPhoto) userPhoto.src = user.photoURL;
+
+      if (menuLogoutBtn) menuLogoutBtn.style.display = 'block';   // show logout in menu
+    } else {
+      notes = [];
+      allTags = new Set();
+      renderNotes();
+      renderTagFilters();
+
+      if (loginBtn)  loginBtn.style.display = 'inline-block';
+      if (userInfo)  userInfo.style.display = 'none';
+      if (userPhoto) userPhoto.src = '';
+
+      if (menuLogoutBtn) menuLogoutBtn.style.display = 'none';    // hide logout in menu
+    }
+  });
 });
 
+// expose functions
 window.openNoteDialog = openNoteDialog;
 window.closeNoteDialog = closeNoteDialog;
 window.filterByTag = filterByTag;
