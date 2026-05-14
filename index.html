@@ -1,89 +1,150 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Notely</title>
-  <link rel="icon" href="images/notely.png" type="image/png">
-  <link rel="stylesheet" href="style.css" />
- 
-  <script type="module" src="app.js" defer></script>
-  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Notely</title>
+    <link rel="icon" href="images/notely.png" type="image/png" />
+    <link rel="stylesheet" href="style.css" />
 
-  <!-- Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,100..900;1,100..900&family=Montserrat&family=Roboto&display=swap" rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&display=swap" rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet" />
-</head>
-<body>
-  <header>
-    <div class="header-left">
-      <h1 class="title">Notely</h1>
-      <div class="header-buttons">
-        <button class="add-note-btn" id="addNoteBtn">+ Add Note</button>
-        <button id="themeToggleBtn" class="theme-toggle-btn">🌙</button>
+    <script type="module" src="app.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,100..900;1,100..900&family=Montserrat&family=Roboto&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <header>
+      <div class="header-left">
+        <h1 class="title">Notely</h1>
+        <div class="header-buttons">
+          <button class="add-note-btn" id="addNoteBtn">+ Add Note</button>
+          <button id="themeToggleBtn" class="theme-toggle-btn">🌙</button>
+        </div>
       </div>
+      <div class="header-right" id="authSection">
+        <button id="loginBtn">Login</button>
+        <div id="userInfo" style="display: none">
+          <button id="logoutBtn">Logout</button>
+          <img
+            id="userPhoto"
+            src=""
+            alt="User photo"
+            width="40"
+            height="40"
+            style="border-radius: 50%"
+          />
+        </div>
+
+        <!-- Hamburger menu -->
+        <div class="menu">
+          <button
+            class="menu-toggle"
+            aria-haspopup="true"
+            aria-expanded="false"
+            aria-controls="headerMenu"
+            title="Menu"
+          >
+            ☰
+          </button>
+          <div id="headerMenu" class="menu-panel" role="menu">
+            <button
+              id="menuTheme"
+              class="menu-item"
+              role="menuitemcheckbox"
+              aria-checked="false"
+            >
+              🌙 Dark mode
+            </button>
+            <button id="menuLogout" class="menu-item" role="menuitem">
+              Logout
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div id="tagFilters" class="tag-filters">
+      <div class="tag-pill filter-pill active" data-tag="All">All</div>
     </div>
-    <div class="header-right" id="authSection">
-      <button id="loginBtn">Login</button>
-      <div id="userInfo" style="display: none;">
-        <button id="logoutBtn">Logout</button>
-        <img id="userPhoto" src="" alt="User photo" width="40" height="40" style="border-radius: 50%;" />
-      </div>
 
-      <!-- Hamburger menu -->
-      <div class="menu">
-        <button class="menu-toggle" aria-haspopup="true" aria-expanded="false" aria-controls="headerMenu" title="Menu">☰</button>
-        <div id="headerMenu" class="menu-panel" role="menu">
-          <button id="menuTheme" class="menu-item" role="menuitemcheckbox" aria-checked="false">🌙 Dark mode</button>
-          <button id="menuLogout" class="menu-item" role="menuitem">Logout</button>
-        </div>
-      </div>
-    </div>
-  </header>
+    <main id="notesContainer" class="notes-grid"></main>
 
-  <div id="tagFilters" class="tag-filters">
-    <div class="tag-pill filter-pill active" data-tag="All">All</div>
-  </div>
-
-  <main id="notesContainer" class="notes-grid"></main>
-
-  <dialog id="noteDialog">
-    <div class="dialog-content">
-      <div class="dialog-header">
-        <h2 class="dialog-title" id="dialogTitle">Add New Note</h2>
-        <button class="close-btn" id="dialogCloseBtn">x</button>
-      </div>
-
-      <div class="form-group tag-input-wrapper">
-        <label for="noteTagsInput" class="form-label">Tags</label>
-        <div id="tagList" class="tag-list"></div>
-        <input type="text" id="noteTagsInput" class="form-input" placeholder="Type a tag and press Enter" autocomplete="off" />
-        <ul id="tagSuggestions" class="tag-suggestions"></ul>
-      </div>
-
-      <form id="noteForm">
-        <div class="form-group">
-          <label for="noteTitle" class="form-label">Title</label>
-          <input type="text" id="noteTitle" class="form-input" placeholder="Enter note title..." required />
+    <dialog id="noteDialog">
+      <div class="dialog-content">
+        <div class="dialog-header">
+          <h2 class="dialog-title" id="dialogTitle">Add New Note</h2>
+          <button class="close-btn" id="dialogCloseBtn">x</button>
         </div>
 
-        <div class="form-group">
-          <label for="noteContent" class="form-label">Content</label>
-          <textarea id="noteContent" class="form-textarea" placeholder="Write your note here..." required></textarea>
+        <div class="form-group tag-input-wrapper">
+          <label for="noteTagsInput" class="form-label">Tags</label>
+          <div id="tagList" class="tag-list"></div>
+          <input
+            type="text"
+            id="noteTagsInput"
+            class="form-input"
+            placeholder="Type a tag and press Enter"
+            autocomplete="off"
+          />
+          <ul id="tagSuggestions" class="tag-suggestions"></ul>
         </div>
 
-        <div class="dialog-actions">
-          <button type="button" class="cancel-btn" id="cancelBtn">Cancel</button>
-          <button type="submit" class="save-btn">Save</button>
-        </div>
-      </form>
-    </div>
-  </dialog>
-</body>
+        <form id="noteForm">
+          <div class="form-group">
+            <label for="noteTitle" class="form-label">Title</label>
+            <input
+              type="text"
+              id="noteTitle"
+              class="form-input"
+              placeholder="Enter note title..."
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="noteContent" class="form-label">Content</label>
+            <textarea
+              id="noteContent"
+              class="form-textarea"
+              placeholder="Write your note here..."
+              required
+            ></textarea>
+          </div>
+
+          <div class="dialog-actions">
+            <button type="button" class="cancel-btn" id="cancelBtn">
+              Cancel
+            </button>
+            <button type="submit" class="save-btn">Save</button>
+          </div>
+        </form>
+      </div>
+    </dialog>
+  </body>
 </html>
